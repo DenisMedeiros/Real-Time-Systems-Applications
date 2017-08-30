@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QStandardItemModel>
 
 namespace Ui {
 class MainWindow;
@@ -17,6 +18,10 @@ public:
 
 private:
     Ui::MainWindow *ui;
+    QStandardItemModel *model;
+
+private slots:
+    void atualizarLista();
 };
 
 #endif // MAINWINDOW_H

@@ -1,8 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include <QStandardItemModel>
 #include <QTableWidgetItem>
 #include "util.h"
+#include <QTimer>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -10,8 +10,13 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    QTimer *timer = new QTimer(this);
+    connect(timer, SIGNAL(timeout()), this, SLOT(atualizarLista()));
+    timer->start(5000);
+
+
     /* Criando as colunas da tabela. */
-    QStandardItemModel *model = new QStandardItemModel();
+    model = new QStandardItemModel();
     model->setColumnCount(7);
 
     model->setHorizontalHeaderItem(0, new QStandardItem(QString("PID")));
@@ -31,6 +36,19 @@ MainWindow::MainWindow(QWidget *parent) :
     //ui->tableViewProcessos->setSelectionMode(QAbstractItemView::SingleSelection);
 
 
+    atualizarLista();
+
+}
+
+MainWindow::~MainWindow()
+{
+    delete ui;
+}
+
+void MainWindow::atualizarLista()
+{
+    model->setRowCount(0);
+
     QList<Processo> processos = getTodosProcessos();
     foreach(Processo p, processos)
     {
@@ -46,11 +64,4 @@ MainWindow::MainWindow(QWidget *parent) :
         model->insertRow(model->rowCount(), linha);
 
     }
-
-
-}
-
-MainWindow::~MainWindow()
-{
-    delete ui;
 }
