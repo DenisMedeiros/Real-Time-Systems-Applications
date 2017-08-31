@@ -45,11 +45,14 @@
        </widget>
       </item>
       <item>
-       <widget class="QTableView" name="tableViewProcessos">
-        <property name="sortingEnabled">
-         <bool>true</bool>
+       <widget class="QTableWidget" name="tableWidgetProcessos">
+        <property name="columnCount">
+         <number>7</number>
         </property>
         <attribute name="horizontalHeaderCascadingSectionResizes">
+         <bool>true</bool>
+        </attribute>
+        <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
          <bool>true</bool>
         </attribute>
         <attribute name="horizontalHeaderStretchLastSection">
@@ -59,8 +62,18 @@
          <bool>true</bool>
         </attribute>
         <attribute name="verticalHeaderShowSortIndicator" stdset="0">
-         <bool>false</bool>
+         <bool>true</bool>
         </attribute>
+        <attribute name="verticalHeaderStretchLastSection">
+         <bool>true</bool>
+        </attribute>
+        <column/>
+        <column/>
+        <column/>
+        <column/>
+        <column/>
+        <column/>
+        <column/>
        </widget>
       </item>
       <item>
