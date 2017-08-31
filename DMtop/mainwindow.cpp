@@ -22,8 +22,25 @@ MainWindow::MainWindow(QWidget *parent) :
 
     /* Alterando outras configurações da tabela. */
     ui->tableWidgetProcessos->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    ui->tableWidgetProcessos->verticalHeader()->setVisible(true);
-    ui->tableWidgetProcessos->setSelectionMode(QAbstractItemView::SingleSelection);
+    ui->tableWidgetProcessos->verticalHeader()->setVisible(false);
+    //ui->tableWidgetProcessos->horizontalHeader()->setDisabled(true);
+    //ui->tableWidgetProcessos->horizontalHeader()->setSelectionMode(QAbstractItemView::NoSelection);
+    ui->tableWidgetProcessos->setSortingEnabled(true);
+
+    //ui->tableWidgetProcessos->setSelectionMode(QAbstractItemView::SingleSelection);
+    //ui->tableWidgetProcessos->setSelectionMode(QAbstractItemView::MultiSelection);
+
+    /* Preenchendo o combobox com as CPUs. */
+    int numCPUs = obterNumCPUs();
+
+    for(int i = 0; i < numCPUs; i++)
+    {
+        ui->comboBoxCPU->addItem("CPU " + QString::number(i));
+    }
+
+    /* Line edit dos PIDs para receber apenas número. */
+    ui->lineEditAcaoPID->setValidator(new QIntValidator(1, 65535, this));
+    ui->lineEditAlterarCPUPID->setValidator(new QIntValidator(1, 65535, this));
 
     atualizarLista();
 
@@ -32,6 +49,9 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->tableWidgetProcessos, SIGNAL(cellClicked(int,int)), this, SLOT(selecionarCelula(int,int)));
     connect(ui->pushButtonFiltrar, SIGNAL(released()), this, SLOT(filtrarProcessos()));
     connect(ui->pushButtonSair, SIGNAL(released()),this,SLOT(matarProcessos()));
+    connect(ui->pushButtonAlterarCPU, SIGNAL(released()), this, SLOT(alterarCPU()));
+
+
 }
 
 MainWindow::~MainWindow()
@@ -62,11 +82,13 @@ void MainWindow::atualizarLista()
 
 void MainWindow::selecionarCelula(int l, int c)
 {
-    /* Verifica se selecionou a coluna 0 (pid). */
-    QTableWidgetItem *item = ui->tableWidgetProcessos->item(l, 0);
+    c = 0;
+    QTableWidgetItem *item = ui->tableWidgetProcessos->item(l, c);
+    ui->tableWidgetProcessos->selectRow(l);
     QString pidText = item->text();
     ui->lineEditAcaoPID->setText(pidText);
     ui->lineEditAlterarCPUPID->setText(pidText);
+
 }
 
 void MainWindow::filtrarProcessos()
@@ -81,7 +103,7 @@ void MainWindow::filtrarProcessos()
             QTableWidgetItem *item = ui->tableWidgetProcessos->item(i, 0);
             QString pidText = item->text();
             QString saida = QString("Processo com pid " + pidText);
-            QMessageBox::about(this, "Processo", saida);
+
         }
 
     }
@@ -90,7 +112,44 @@ void MainWindow::filtrarProcessos()
 void MainWindow::matarProcessos()
 {
     QString pidText = ui->lineEditAcaoPID->text();
-    int pid=pidText.toInt();
-    matarProcesso(pid);
-    atualizarLista();
+
+    if(pidText.trimmed().isEmpty())
+    {
+      QMessageBox::about(this, "Erro", "Digite ou selecione um PID.");
+      return;
+    }
+
+    int pid = pidText.toInt();
+    if (matarProcesso(pid) == 0)
+    {
+        atualizarLista();
+        return;
+    }
+
+    QMessageBox::about(this, "Erro", "O processo " + pidText  + " não pôde ser morto.");
+}
+
+void MainWindow::alterarCPU()
+{
+    QString pidText = ui->lineEditAlterarCPUPID->text();
+
+    if(pidText.trimmed().isEmpty())
+    {
+      QMessageBox::about(this, "Erro", "Digite ou selecione um PID.");
+      return;
+    }
+
+    int pid = pidText.toInt();
+
+    QString cpuText = ui->comboBoxCPU->currentText();
+    cpuText = cpuText.remove(0,4); // Remove a palavra CPU
+    int cpu = cpuText.toInt();
+
+    if(alterarAfinidade(pid, cpu) == 0)
+    {
+        atualizarLista();
+        return;
+    }
+
+    QMessageBox::about(this, "Erro", "O processo " + pidText  + " não pôde ter a CPU alterada.");
 }

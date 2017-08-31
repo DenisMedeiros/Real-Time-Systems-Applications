@@ -27,6 +27,7 @@ private slots:
     void selecionarCelula(int l, int c);
     void filtrarProcessos();
     void matarProcessos();
+    void alterarCPU();
 };
 
 #endif // MAINWINDOW_H

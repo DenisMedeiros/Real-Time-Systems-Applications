@@ -16,10 +16,11 @@ struct Processo {
 };
 
 
-void pararProcesso(int pid);
-void continuarProcesso(int pid);
-void matarProcesso(int pid);
-void alterarCPU(int pid, int cpu);
+int pararProcesso(int pid);
+int continuarProcesso(int pid);
+int matarProcesso(int pid);
+int alterarAfinidade(int pid, int cpu);
+int obterNumCPUs();
 QList<Processo> getTodosProcessos(void);
 
 #endif // UTIL_H

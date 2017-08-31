@@ -6,38 +6,40 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h> // system()
-#define _GNU_SOURCE             /* See feature_test_macros(7) */
+
 #include <sched.h>
 
-void pararProcesso(int pid)
+int pararProcesso(int pid)
 {
-    kill(pid, SIGSTOP);
+    return kill(pid, SIGSTOP);
 }
 
 
 
-void continuarProcesso(int pid)
+int continuarProcesso(int pid)
 {
-    kill(pid, SIGCONT);
+    return kill(pid, SIGCONT);
 }
 
 
 
-void matarProcesso(int pid)
+int matarProcesso(int pid)
 {
-    kill(pid, SIGKILL);
+    /* Retornar 0 significa que deu certo. */
+    return kill(pid, SIGKILL);
 }
 
 
-void alterarCPU(int pid, int cpu)
+int alterarAfinidade(int pid, int cpu)
 {   
-    int max = sysconf(_SC_NPROCESSORS_ONLN);
-    if(cpu<=(max-1)){
+    int numCPUs = obterNumCPUs();
+    if(cpu <= (numCPUs-1)){
         cpu_set_t my_set;        
         CPU_ZERO(&my_set); 
         CPU_SET(cpu, &my_set); 
-        sched_setaffinity(pid, sizeof(cpu_set_t), &my_set);
+        return sched_setaffinity(pid, sizeof(cpu_set_t), &my_set);
     }
+    return -2;
 }
 
 QList<Processo> getTodosProcessos()
@@ -75,4 +77,9 @@ QList<Processo> getTodosProcessos()
     }
 
     return lista;
+}
+
+int obterNumCPUs()
+{
+    return sysconf(_SC_NPROCESSORS_ONLN);
 }
