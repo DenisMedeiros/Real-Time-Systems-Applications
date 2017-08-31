@@ -2,30 +2,41 @@
 #include <QProcess>
 #include <QDebug>
 #include <QString>
+#include <signal.h> // definição dos sinais de interrupções
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h> // system()
+#define _GNU_SOURCE             /* See feature_test_macros(7) */
+#include <sched.h>
 
 void pararProcesso(int pid)
 {
-    // TODO
+    kill(pid, SIGSTOP);
 }
 
 
 
 void continuarProcesso(int pid)
 {
-    // TODO
+    kill(pid, SIGCONT);
 }
 
 
 
 void matarProcesso(int pid)
 {
-    // TODO
+    kill(pid, SIGKILL);
 }
 
 
 void alterarCPU(int pid, int cpu)
-{
-    // TODO
+{   
+    max = sysconf(_SC_NPROCESSORS_ONLN);
+    if(cpu<=(max-1)){
+        cpu_set_t my_set;        
+        CPU_ZERO(&my_set);       
+        sched_setaffinity(pid, sizeof(cpu_set_t), &my_set);
+    }
 }
 
 QList<Processo> getTodosProcessos()
