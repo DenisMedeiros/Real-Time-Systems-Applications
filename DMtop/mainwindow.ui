@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>726</width>
+    <width>859</width>
     <height>418</height>
    </rect>
   </property>
@@ -127,9 +127,9 @@
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButtonParar">
+         <widget class="QPushButton" name="pushButtonSuspender">
           <property name="text">
-           <string>Parar</string>
+           <string>Suspender</string>
           </property>
          </widget>
         </item>
@@ -141,9 +141,9 @@
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButtonSair">
+         <widget class="QPushButton" name="pushButtonMatar">
           <property name="text">
-           <string>Sair</string>
+           <string>Matar</string>
           </property>
          </widget>
         </item>

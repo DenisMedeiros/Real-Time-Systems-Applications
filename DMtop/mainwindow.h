@@ -4,6 +4,8 @@
 #include <QMainWindow>
 #include <QStandardItemModel>
 #include <QList>
+#include <QString>
+
 #include "util.h"
 
 namespace Ui {
@@ -21,9 +23,12 @@ public:
 private:
     Ui::MainWindow *ui;
     QList<Processo> processos;
+    void atualizarLista();
+    QString processarStatus(QString status);
+
 
 private slots:
-    void atualizarLista();
+    void timeout();
     void selecionarCelula(int l, int c);
     void filtrarProcessos();
     void matarProcessos();
