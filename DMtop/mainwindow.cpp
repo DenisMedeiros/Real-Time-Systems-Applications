@@ -31,6 +31,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(timer, SIGNAL(timeout()), this, SLOT(atualizarLista()));
     connect(ui->tableWidgetProcessos, SIGNAL(cellClicked(int,int)), this, SLOT(selecionarCelula(int,int)));
     connect(ui->pushButtonFiltrar, SIGNAL(released()), this, SLOT(filtrarProcessos()));
+    connect(ui->pushButtonSair, SIGNAL(released()),this,SLOT(matarProcessos()));
 }
 
 MainWindow::~MainWindow()
@@ -84,4 +85,12 @@ void MainWindow::filtrarProcessos()
         }
 
     }
+}
+
+void MainWindow::matarProcessos()
+{
+    QString pidText = ui->lineEditAcaoPID->text();
+    int pid=pidText.toInt();
+    matarProcesso(pid);
+    atualizarLista();
 }
