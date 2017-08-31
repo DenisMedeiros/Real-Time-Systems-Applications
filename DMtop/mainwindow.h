@@ -18,10 +18,10 @@ public:
 
 private:
     Ui::MainWindow *ui;
-    QStandardItemModel *model;
 
 private slots:
     void atualizarLista();
+    void selecionarCelula(int l, int c);
 };
 
 #endif // MAINWINDOW_H

@@ -1,8 +1,10 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QTableWidgetItem>
-#include "util.h"
 #include <QTimer>
+#include <QDebug>
+#include "util.h"
+
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -28,6 +30,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     /* Conectando sinais e slots. */
     connect(timer, SIGNAL(timeout()), this, SLOT(atualizarLista()));
+    connect(ui->tableWidgetProcessos, SIGNAL(cellClicked(int,int)), this, SLOT(selecionarCelula(int,int)));
 
 }
 
@@ -54,4 +57,16 @@ void MainWindow::atualizarLista()
         ui->tableWidgetProcessos->setItem(i, 6, new QTableWidgetItem(p.comando));
     }
 
+}
+
+void MainWindow::selecionarCelula(int l, int c)
+{
+    /* Verifica se selecionou a coluna 0 (pid). */
+    if (c == 0)
+    {
+         QTableWidgetItem *item = ui->tableWidgetProcessos->item(l, 0);
+         QString pidText = item->text();
+         ui->lineEditAcaoPID->setText(pidText);
+         ui->lineEditAlterarCPUPID->setText(pidText);
+    }
 }
