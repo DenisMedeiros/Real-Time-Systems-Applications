@@ -34,7 +34,8 @@ void alterarCPU(int pid, int cpu)
     max = sysconf(_SC_NPROCESSORS_ONLN);
     if(cpu<=(max-1)){
         cpu_set_t my_set;        
-        CPU_ZERO(&my_set);       
+        CPU_ZERO(&my_set); 
+        CPU_SET(cpu, &my_set); 
         sched_setaffinity(pid, sizeof(cpu_set_t), &my_set);
     }
 }
