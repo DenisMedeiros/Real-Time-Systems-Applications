@@ -81,7 +81,7 @@
         <item>
          <widget class="QLabel" name="label_2">
           <property name="text">
-           <string>Filtro:</string>
+           <string>Filtar Processo</string>
           </property>
          </widget>
         </item>
@@ -160,11 +160,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="lineEditCPU">
-          <property name="placeholderText">
-           <string>CPU</string>
-          </property>
-         </widget>
+         <widget class="QComboBox" name="comboBoxCPU"/>
         </item>
         <item>
          <widget class="QPushButton" name="pushButtonAlterarCPU">

@@ -3,8 +3,7 @@
 #include <QTableWidgetItem>
 #include <QTimer>
 #include <QDebug>
-#include "util.h"
-
+#include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -31,7 +30,7 @@ MainWindow::MainWindow(QWidget *parent) :
     /* Conectando sinais e slots. */
     connect(timer, SIGNAL(timeout()), this, SLOT(atualizarLista()));
     connect(ui->tableWidgetProcessos, SIGNAL(cellClicked(int,int)), this, SLOT(selecionarCelula(int,int)));
-
+    connect(ui->pushButtonFiltrar, SIGNAL(released()), this, SLOT(filtrarProcessos()));
 }
 
 MainWindow::~MainWindow()
@@ -41,7 +40,8 @@ MainWindow::~MainWindow()
 
 void MainWindow::atualizarLista()
 {
-    QList<Processo> processos = getTodosProcessos();
+    processos.clear();
+    processos = getTodosProcessos();
     ui->tableWidgetProcessos->setRowCount(processos.size());
 
     for(int i = 0; i < processos.size(); i++)
@@ -62,11 +62,26 @@ void MainWindow::atualizarLista()
 void MainWindow::selecionarCelula(int l, int c)
 {
     /* Verifica se selecionou a coluna 0 (pid). */
-    if (c == 0)
+    QTableWidgetItem *item = ui->tableWidgetProcessos->item(l, 0);
+    QString pidText = item->text();
+    ui->lineEditAcaoPID->setText(pidText);
+    ui->lineEditAlterarCPUPID->setText(pidText);
+}
+
+void MainWindow::filtrarProcessos()
+{
+    QString nomeProcesso = ui->lineEditNomeProcesso->text();
+
+    /* Busca processo pelo nome na lista de processos. */
+    for(int i = 0; i < processos.size(); i++)
     {
-         QTableWidgetItem *item = ui->tableWidgetProcessos->item(l, 0);
-         QString pidText = item->text();
-         ui->lineEditAcaoPID->setText(pidText);
-         ui->lineEditAlterarCPUPID->setText(pidText);
+        if(processos[i].comando.contains(nomeProcesso))
+        {
+            QTableWidgetItem *item = ui->tableWidgetProcessos->item(i, 0);
+            QString pidText = item->text();
+            QString saida = QString("Processo com pid " + pidText);
+            QMessageBox::about(this, "Processo", saida);
+        }
+
     }
 }

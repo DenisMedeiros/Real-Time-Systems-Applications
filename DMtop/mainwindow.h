@@ -3,6 +3,8 @@
 
 #include <QMainWindow>
 #include <QStandardItemModel>
+#include <QList>
+#include "util.h"
 
 namespace Ui {
 class MainWindow;
@@ -18,10 +20,12 @@ public:
 
 private:
     Ui::MainWindow *ui;
+    QList<Processo> processos;
 
 private slots:
     void atualizarLista();
     void selecionarCelula(int l, int c);
+    void filtrarProcessos();
 };
 
 #endif // MAINWINDOW_H
