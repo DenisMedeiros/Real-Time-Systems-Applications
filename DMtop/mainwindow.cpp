@@ -63,19 +63,27 @@ void MainWindow::atualizarLista()
 {
     processos.clear();
     processos = getTodosProcessos();
-    ui->tableWidgetProcessos->setRowCount(processos.size());
+    ui->tableWidgetProcessos->setRowCount(0);
 
-    for(int i = 0; i < processos.size(); i++)
+    QString nomeProcesso = ui->lineEditNomeProcesso->text();
+    int count = 0;
+    foreach(Processo p, processos)
     {
-        Processo p = processos[i];
-        /* Adicionando uma nova linha; */
-        ui->tableWidgetProcessos->setItem(i, 0, new QTableWidgetItem(QString::number(p.pid)));
-        ui->tableWidgetProcessos->setItem(i, 1, new QTableWidgetItem(p.usuario));
-        ui->tableWidgetProcessos->setItem(i, 2, new QTableWidgetItem(p.status));
-        ui->tableWidgetProcessos->setItem(i, 3, new QTableWidgetItem(QString::number(p.cpu)));
-        ui->tableWidgetProcessos->setItem(i, 4, new QTableWidgetItem(QString::number(p.cpuP)));
-        ui->tableWidgetProcessos->setItem(i, 5, new QTableWidgetItem(QString::number(p.memP)));
-        ui->tableWidgetProcessos->setItem(i, 6, new QTableWidgetItem(p.comando));
+        if(p.comando.contains(nomeProcesso))
+        {
+            ui->tableWidgetProcessos->insertRow(ui->tableWidgetProcessos->rowCount());
+
+            /* Adicionando uma nova linha; */
+            ui->tableWidgetProcessos->setItem(count, 0, new QTableWidgetItem(QString::number(p.pid)));
+            ui->tableWidgetProcessos->setItem(count, 1, new QTableWidgetItem(p.usuario));
+            ui->tableWidgetProcessos->setItem(count, 2, new QTableWidgetItem(p.status));
+            ui->tableWidgetProcessos->setItem(count, 3, new QTableWidgetItem(QString::number(p.cpu)));
+            ui->tableWidgetProcessos->setItem(count, 4, new QTableWidgetItem(QString::number(p.cpuP)));
+            ui->tableWidgetProcessos->setItem(count, 5, new QTableWidgetItem(QString::number(p.memP)));
+            ui->tableWidgetProcessos->setItem(count, 6, new QTableWidgetItem(p.comando));
+
+            count++;
+        }
     }
 
 }
@@ -93,20 +101,7 @@ void MainWindow::selecionarCelula(int l, int c)
 
 void MainWindow::filtrarProcessos()
 {
-    QString nomeProcesso = ui->lineEditNomeProcesso->text();
-
-    /* Busca processo pelo nome na lista de processos. */
-    for(int i = 0; i < processos.size(); i++)
-    {
-        if(processos[i].comando.contains(nomeProcesso))
-        {
-            QTableWidgetItem *item = ui->tableWidgetProcessos->item(i, 0);
-            QString pidText = item->text();
-            QString saida = QString("Processo com pid " + pidText);
-
-        }
-
-    }
+    atualizarLista();
 }
 
 void MainWindow::matarProcessos()
