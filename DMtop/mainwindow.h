@@ -31,14 +31,18 @@ private:
     void atualizarLista();
     QString processarStatus(QString status);
     QTimer *timerTabela;
+    QTimer *timerGrafico;
 
     // Gráfico da CPU.
-    QMainWindow *janelaGrafico;
-
-    QTimer *timerGrafico;
-    QChart *chart;
-    QChartView *chartView;
+    QMainWindow *janelaGraficoCPU;
+    QChart *chartCPU;
+    QChartView *chartViewCPU;
     QLineSeries *seriesCPU;
+
+
+    QMainWindow *janelaGraficoMemoria;
+    QChart *chartMemoria;
+    QChartView *chartViewMemoria;
     QLineSeries *seriesMemoria;
 
 

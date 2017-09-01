@@ -139,12 +139,14 @@ void MainWindow::timeoutGrafico()
 {
     Processo p = getInfoProcesso(processoMonitorado);
     tempoMonitorado++;
-    chart->axisX()->setRange(0, tempoMonitorado+1);
+
+    chartCPU->axisX()->setRange(0, tempoMonitorado+1);
+    chartMemoria->axisX()->setRange(0, tempoMonitorado+1);
 
     seriesCPU->append(tempoMonitorado, p.cpuP);
     seriesMemoria->append(tempoMonitorado, p.memP);
 
-    std::cout << "cpu = " << (float) p.cpuP << ", memoria = " << p.memP << std::endl;
+
 }
 
 void MainWindow::timeoutTabela()
@@ -228,25 +230,41 @@ void MainWindow::exibirGrafico()
      seriesCPU = new QLineSeries();
      seriesMemoria = new QLineSeries();
 
-     chart = new QChart();
-     chart->setTitle("Monitorando processo " + pidText);
-     chart->addSeries(seriesCPU);
-     chart->addSeries(seriesMemoria);
-     chart->createDefaultAxes();
-     chart->legend()->hide();
+     chartCPU = new QChart();
+     chartCPU->setTitle("Monitorando CPU do processo " + pidText);
+     chartCPU->addSeries(seriesCPU);
+     chartCPU->createDefaultAxes();
+     chartCPU->legend()->hide();
+     chartCPU->axisY()->setRange(0, 1);
+     chartCPU->axisY()->setRange(0, 110);
+     chartCPU->axisX()->setGridLineVisible(true);
+     chartCPU->axisY()->setGridLineVisible(true);
 
-     chart->axisY()->setRange(0, 110);
+     chartMemoria = new QChart();
+     chartMemoria->setTitle("Monitorando memória do processo " + pidText);
+     chartMemoria->addSeries(seriesMemoria);
+     chartMemoria->createDefaultAxes();
+     chartMemoria->legend()->hide();
+     chartMemoria->axisY()->setRange(0, 1);
+     chartMemoria->axisY()->setRange(0, 10);
+     chartMemoria->axisX()->setGridLineVisible(true);
+     chartMemoria->axisY()->setGridLineVisible(true);
 
-     chart->axisX()->setGridLineVisible(true);
-     chart->axisY()->setGridLineVisible(true);
+     chartViewCPU = new QChartView(chartCPU);
+     chartViewCPU->setRenderHint(QPainter::Antialiasing);
 
-     chartView = new QChartView(chart);
-     chartView->setRenderHint(QPainter::Antialiasing);
+     chartViewMemoria = new QChartView(chartMemoria);
+     chartViewMemoria->setRenderHint(QPainter::Antialiasing);
 
-     janelaGrafico = new QMainWindow();
-     janelaGrafico->resize(400, 400);
-     janelaGrafico->setCentralWidget(chartView);
-     janelaGrafico->show();
+     janelaGraficoCPU = new QMainWindow();
+     janelaGraficoCPU->resize(400, 400);
+     janelaGraficoCPU->setCentralWidget(chartViewCPU);
+     janelaGraficoCPU->show();
+
+     janelaGraficoMemoria = new QMainWindow();
+     janelaGraficoMemoria->resize(400, 400);
+     janelaGraficoMemoria->setCentralWidget(chartViewMemoria);
+     janelaGraficoMemoria->show();
 
      timerGrafico->start(2000);
 }
