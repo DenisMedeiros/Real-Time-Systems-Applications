@@ -2,11 +2,12 @@
 #include <QProcess>
 #include <QDebug>
 #include <QString>
+#include <iostream>
+
 #include <signal.h> // definição dos sinais de interrupções
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h> // system()
-
 #include <sched.h>
 
 int pararProcesso(int pid)
@@ -42,6 +43,8 @@ int alterarAfinidade(int pid, int cpu)
     return -2;
 }
 
+
+
 QList<Processo> getTodosProcessos()
 {
     QList<Processo> lista;
@@ -51,7 +54,6 @@ QList<Processo> getTodosProcessos()
     process.waitForFinished(-1); // will wait forever until finished
 
     QString saida = process.readAllStandardOutput();
-    QString erro = process.readAllStandardError();
 
     QStringList linhas = saida.split("\n");
     foreach(QString linha, linhas)
@@ -82,4 +84,32 @@ QList<Processo> getTodosProcessos()
 int obterNumCPUs()
 {
     return sysconf(_SC_NPROCESSORS_ONLN);
+}
+
+Processo getInfoProcesso(int pid)
+{
+    Processo p;
+    QProcess process;
+    QString comando = "ps --no-headers -o \"pid:1,uname,stat,psr,pcpu,pmem,command\" -p " + QString::number(pid);
+    process.start(comando);
+    process.waitForFinished(-1); // will wait forever until finished
+
+    QString saida = process.readAllStandardOutput();
+    QString saidaS = saida.simplified();
+
+    QStringList partes = saidaS.split(" ");
+
+    if(partes.size() >= 7)
+    {
+        p.pid = partes[0].toInt();
+        p.usuario = partes[1];
+        p.status = partes[2];
+        p.cpu = partes[3].toInt();
+        p.cpuP = partes[4].toFloat();
+        p.memP = partes[5].toFloat();
+        p.comando = partes[6];
+    }
+
+    return p;
+
 }

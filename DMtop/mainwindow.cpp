@@ -4,6 +4,7 @@
 #include <QTimer>
 #include <QDebug>
 #include <QMessageBox>
+#include <iostream>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -11,8 +12,10 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    QTimer *timer = new QTimer(this);
-    timer->start(2000);
+    timerTabela = new QTimer(this);
+    timerGrafico = new QTimer(this);
+
+    timerTabela->start(2000);
 
     /* Criando as colunas da tabela. */
 
@@ -45,11 +48,14 @@ MainWindow::MainWindow(QWidget *parent) :
     atualizarLista();
 
     /* Conectando sinais e slots. */
-    connect(timer, SIGNAL(timeout()), this, SLOT(timeout()));
+    connect(timerTabela, SIGNAL(timeout()), this, SLOT(timeoutTabela()));
     connect(ui->tableWidgetProcessos, SIGNAL(cellClicked(int,int)), this, SLOT(selecionarCelula(int,int)));
     connect(ui->pushButtonFiltrar, SIGNAL(released()), this, SLOT(filtrarProcessos()));
     connect(ui->pushButtonMatar, SIGNAL(released()),this,SLOT(matarProcessos()));
     connect(ui->pushButtonAlterarCPU, SIGNAL(released()), this, SLOT(alterarCPU()));
+    connect(ui->lineEditNomeProcesso, SIGNAL(textChanged(QString)), this, SLOT(filtrarProcessos())); // Filtra em tempo real
+    connect(ui->pushButtonExibir, SIGNAL(released()), this, SLOT(exibirGrafico()));
+    connect(timerGrafico, SIGNAL(timeout()), this, SLOT(timeoutGrafico()));
 
 
 }
@@ -81,6 +87,7 @@ void MainWindow::atualizarLista()
             ui->tableWidgetProcessos->setItem(count, 4, new QTableWidgetItem(QString::number(p.cpuP)));
             ui->tableWidgetProcessos->setItem(count, 5, new QTableWidgetItem(QString::number(p.memP)));
             ui->tableWidgetProcessos->setItem(count, 6, new QTableWidgetItem(p.comando));
+
 
             count++;
         }
@@ -127,7 +134,20 @@ QString MainWindow::processarStatus(QString status)
 
 }
 
-void MainWindow::timeout()
+/* Fica atualizando o gráfico com novos pontos. */
+void MainWindow::timeoutGrafico()
+{
+    Processo p = getInfoProcesso(processoMonitorado);
+    tempoMonitorado++;
+    chart->axisX()->setRange(0, tempoMonitorado+1);
+
+    seriesCPU->append(tempoMonitorado, p.cpuP);
+    seriesMemoria->append(tempoMonitorado, p.memP);
+
+    std::cout << "cpu = " << (float) p.cpuP << ", memoria = " << p.memP << std::endl;
+}
+
+void MainWindow::timeoutTabela()
 {
     atualizarLista();
 }
@@ -140,7 +160,7 @@ void MainWindow::selecionarCelula(int l, int c)
     QString pidText = item->text();
     ui->lineEditAcaoPID->setText(pidText);
     ui->lineEditAlterarCPUPID->setText(pidText);
-
+    ui->lineEditGrafico->setText(pidText);
 }
 
 void MainWindow::filtrarProcessos()
@@ -191,4 +211,42 @@ void MainWindow::alterarCPU()
     }
 
     QMessageBox::about(this, "Erro", "O processo " + pidText  + " não pôde ter a CPU alterada.");
+}
+
+void MainWindow::exibirGrafico()
+{
+     QString pidText = ui->lineEditAcaoPID->text();
+     if(pidText.trimmed().isEmpty())
+     {
+       QMessageBox::about(this, "Erro", "Digite ou selecione um PID.");
+       return;
+     }
+
+     processoMonitorado = pidText.toInt();
+     tempoMonitorado = 0;
+
+     seriesCPU = new QLineSeries();
+     seriesMemoria = new QLineSeries();
+
+     chart = new QChart();
+     chart->setTitle("Monitorando processo " + pidText);
+     chart->addSeries(seriesCPU);
+     chart->addSeries(seriesMemoria);
+     chart->createDefaultAxes();
+     chart->legend()->hide();
+
+     chart->axisY()->setRange(0, 110);
+
+     chart->axisX()->setGridLineVisible(true);
+     chart->axisY()->setGridLineVisible(true);
+
+     chartView = new QChartView(chart);
+     chartView->setRenderHint(QPainter::Antialiasing);
+
+     janelaGrafico = new QMainWindow();
+     janelaGrafico->resize(400, 400);
+     janelaGrafico->setCentralWidget(chartView);
+     janelaGrafico->show();
+
+     timerGrafico->start(2000);
 }
