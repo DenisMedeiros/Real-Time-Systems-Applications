@@ -7,7 +7,7 @@
 #include <QString>
 #include <QMainWindow>
 #include <QtCharts>
-
+#include <QCloseEvent>
 #include "util.h"
 
 namespace Ui {
@@ -34,16 +34,18 @@ private:
     QTimer *timerGrafico;
 
     // Gráfico da CPU.
-    QMainWindow *janelaGraficoCPU = NULL;
-    QChart *chartCPU = NULL;
-    QChartView *chartViewCPU = NULL;
-    QLineSeries *seriesCPU = NULL;
+    QMainWindow *janelaGraficoCPU;
+    QChart *chartCPU;
+    QChartView *chartViewCPU;
+    QLineSeries *seriesCPU;
 
 
-    QMainWindow *janelaGraficoMemoria = NULL;
-    QChart *chartMemoria = NULL;
-    QChartView *chartViewMemoria = NULL;
-    QLineSeries *seriesMemoria = NULL;
+    QMainWindow *janelaGraficoMemoria;
+    QChart *chartMemoria;
+    QChartView *chartViewMemoria;
+    QLineSeries *seriesMemoria;
+
+    void closeEvent (QCloseEvent *event);
 
 
 private slots:

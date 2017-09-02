@@ -4,7 +4,7 @@
 #include <QTimer>
 #include <QDebug>
 #include <QMessageBox>
-#include <iostream>
+
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -86,7 +86,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->lineEditNomeProcesso, SIGNAL(textChanged(QString)), this, SLOT(filtrarProcessos())); // Filtra em tempo real
     connect(ui->pushButtonExibir, SIGNAL(released()), this, SLOT(exibirGrafico()));
     connect(timerGrafico, SIGNAL(timeout()), this, SLOT(timeoutGrafico()));
-
+    connect(this, SIGNAL(destroyed(QObject*)), janelaGraficoCPU, SLOT(close()));
 
 }
 
@@ -281,4 +281,11 @@ void MainWindow::exibirGrafico()
      janelaGraficoMemoria->show();
 
      timerGrafico->start(2000);
+}
+
+void MainWindow::closeEvent (QCloseEvent *event)
+{
+    janelaGraficoCPU->close();
+    janelaGraficoMemoria->close();
+    event->accept();
 }
