@@ -34,16 +34,16 @@ private:
     QTimer *timerGrafico;
 
     // Gráfico da CPU.
-    QMainWindow *janelaGraficoCPU;
-    QChart *chartCPU;
-    QChartView *chartViewCPU;
-    QLineSeries *seriesCPU;
+    QMainWindow *janelaGraficoCPU = NULL;
+    QChart *chartCPU = NULL;
+    QChartView *chartViewCPU = NULL;
+    QLineSeries *seriesCPU = NULL;
 
 
-    QMainWindow *janelaGraficoMemoria;
-    QChart *chartMemoria;
-    QChartView *chartViewMemoria;
-    QLineSeries *seriesMemoria;
+    QMainWindow *janelaGraficoMemoria = NULL;
+    QChart *chartMemoria = NULL;
+    QChartView *chartViewMemoria = NULL;
+    QLineSeries *seriesMemoria = NULL;
 
 
 private slots:

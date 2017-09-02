@@ -45,6 +45,36 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->lineEditAcaoPID->setValidator(new QIntValidator(1, 65535, this));
     ui->lineEditAlterarCPUPID->setValidator(new QIntValidator(1, 65535, this));
 
+
+    /* Gráficos. */
+    seriesCPU = new QLineSeries();
+    seriesMemoria = new QLineSeries();
+    chartCPU = new QChart();
+    chartCPU->addSeries(seriesCPU);
+    chartCPU->createDefaultAxes();
+    chartCPU->legend()->hide();
+
+    chartMemoria = new QChart();
+    chartMemoria->addSeries(seriesMemoria);
+    chartMemoria->createDefaultAxes();
+    chartMemoria->legend()->hide();
+
+    chartViewCPU = new QChartView(chartCPU);
+    chartViewCPU->setRenderHint(QPainter::Antialiasing);
+
+    chartViewMemoria = new QChartView(chartMemoria);
+    chartViewMemoria->setRenderHint(QPainter::Antialiasing);
+
+    janelaGraficoCPU = new QMainWindow();
+    janelaGraficoCPU->resize(400, 400);
+    janelaGraficoCPU->setCentralWidget(chartViewCPU);
+
+    janelaGraficoMemoria = new QMainWindow();
+    janelaGraficoMemoria->resize(400, 400);
+    janelaGraficoMemoria->setCentralWidget(chartViewMemoria);
+
+
+
     atualizarLista();
 
     /* Conectando sinais e slots. */
@@ -218,52 +248,36 @@ void MainWindow::alterarCPU()
 void MainWindow::exibirGrafico()
 {
      QString pidText = ui->lineEditAcaoPID->text();
+
      if(pidText.trimmed().isEmpty())
      {
        QMessageBox::about(this, "Erro", "Digite ou selecione um PID.");
        return;
      }
 
+     timerGrafico->stop();
+     seriesCPU->clear();
+     seriesMemoria->clear();
+
+
      processoMonitorado = pidText.toInt();
      tempoMonitorado = 0;
 
-     seriesCPU = new QLineSeries();
-     seriesMemoria = new QLineSeries();
-
-     chartCPU = new QChart();
      chartCPU->setTitle("Monitorando CPU do processo " + pidText);
-     chartCPU->addSeries(seriesCPU);
-     chartCPU->createDefaultAxes();
-     chartCPU->legend()->hide();
-     chartCPU->axisY()->setRange(0, 1);
      chartCPU->axisY()->setRange(0, 110);
+     chartCPU->axisY()->setTitleText("Consumo de CPU em %");
+     chartCPU->axisX()->setTitleText("Tempo medido em segundos");
      chartCPU->axisX()->setGridLineVisible(true);
      chartCPU->axisY()->setGridLineVisible(true);
 
-     chartMemoria = new QChart();
      chartMemoria->setTitle("Monitorando memória do processo " + pidText);
-     chartMemoria->addSeries(seriesMemoria);
-     chartMemoria->createDefaultAxes();
-     chartMemoria->legend()->hide();
-     chartMemoria->axisY()->setRange(0, 1);
-     chartMemoria->axisY()->setRange(0, 10);
+     chartMemoria->axisY()->setRange(0, 110);
+     chartMemoria->axisY()->setTitleText("Consumo de memória em %");
+     chartMemoria->axisX()->setTitleText("Tempo medido em segundos");
      chartMemoria->axisX()->setGridLineVisible(true);
      chartMemoria->axisY()->setGridLineVisible(true);
 
-     chartViewCPU = new QChartView(chartCPU);
-     chartViewCPU->setRenderHint(QPainter::Antialiasing);
-
-     chartViewMemoria = new QChartView(chartMemoria);
-     chartViewMemoria->setRenderHint(QPainter::Antialiasing);
-
-     janelaGraficoCPU = new QMainWindow();
-     janelaGraficoCPU->resize(400, 400);
-     janelaGraficoCPU->setCentralWidget(chartViewCPU);
      janelaGraficoCPU->show();
-
-     janelaGraficoMemoria = new QMainWindow();
-     janelaGraficoMemoria->resize(400, 400);
-     janelaGraficoMemoria->setCentralWidget(chartViewMemoria);
      janelaGraficoMemoria->show();
 
      timerGrafico->start(2000);
