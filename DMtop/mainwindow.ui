@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>DEMtop</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="resources.qrc">
+    <normaloff>:/icons/icons/dmtop.svg</normaloff>:/icons/icons/dmtop.svg</iconset>
+  </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
@@ -125,9 +129,9 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="pushButtonSuspender">
+       <widget class="QPushButton" name="pushButtonParar">
         <property name="text">
-         <string>Suspender</string>
+         <string>Parar</string>
         </property>
        </widget>
       </item>
@@ -205,6 +209,8 @@
   <widget class="QStatusBar" name="statusBar"/>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources/>
+ <resources>
+  <include location="resources.qrc"/>
+ </resources>
  <connections/>
 </ui>

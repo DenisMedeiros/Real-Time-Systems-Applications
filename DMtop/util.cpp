@@ -10,6 +10,7 @@
 #include <stdlib.h> // system()
 #include <sched.h>
 
+
 int pararProcesso(int pid)
 {
     return kill(pid, SIGSTOP);

@@ -24,5 +24,6 @@ int obterNumCPUs();
 QList<Processo> getTodosProcessos(void);
 Processo getInfoProcesso(int pid);
 
+
 #endif // UTIL_H
 

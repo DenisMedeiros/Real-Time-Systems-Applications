@@ -81,12 +81,15 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(timerTabela, SIGNAL(timeout()), this, SLOT(timeoutTabela()));
     connect(ui->tableWidgetProcessos, SIGNAL(cellClicked(int,int)), this, SLOT(selecionarCelula(int,int)));
     connect(ui->pushButtonFiltrar, SIGNAL(released()), this, SLOT(filtrarProcessos()));
-    connect(ui->pushButtonMatar, SIGNAL(released()),this,SLOT(matarProcessos()));
+    connect(ui->pushButtonMatar, SIGNAL(released()),this,SLOT(matarProcessoSlot()));
     connect(ui->pushButtonAlterarCPU, SIGNAL(released()), this, SLOT(alterarCPU()));
     connect(ui->lineEditNomeProcesso, SIGNAL(textChanged(QString)), this, SLOT(filtrarProcessos())); // Filtra em tempo real
     connect(ui->pushButtonExibir, SIGNAL(released()), this, SLOT(exibirGrafico()));
     connect(timerGrafico, SIGNAL(timeout()), this, SLOT(timeoutGrafico()));
     connect(this, SIGNAL(destroyed(QObject*)), janelaGraficoCPU, SLOT(close()));
+    connect(ui->pushButtonParar, SIGNAL(released()), this, SLOT(pararProcessoSlot()));
+    connect(ui->pushButtonContinuar, SIGNAL(released()), this, SLOT(continuarProcessoSlot()));
+
 
 }
 
@@ -200,7 +203,47 @@ void MainWindow::filtrarProcessos()
     atualizarLista();
 }
 
-void MainWindow::matarProcessos()
+void MainWindow::pararProcessoSlot()
+{
+    QString pidText = ui->lineEditAcaoPID->text();
+
+    if(pidText.trimmed().isEmpty())
+    {
+      QMessageBox::about(this, "Erro", "Digite ou selecione um PID.");
+      return;
+    }
+
+    int pid = pidText.toInt();
+    if (pararProcesso(pid) == 0)
+    {
+        atualizarLista();
+        return;
+    }
+
+    QMessageBox::about(this, "Erro", "O processo " + pidText  + " não pôde ser parado.");
+}
+
+void MainWindow::continuarProcessoSlot()
+{
+    QString pidText = ui->lineEditAcaoPID->text();
+
+    if(pidText.trimmed().isEmpty())
+    {
+      QMessageBox::about(this, "Erro", "Digite ou selecione um PID.");
+      return;
+    }
+
+    int pid = pidText.toInt();
+    if (continuarProcesso(pid) == 0)
+    {
+        atualizarLista();
+        return;
+    }
+
+    QMessageBox::about(this, "Erro", "O processo " + pidText  + " não pôde ser parado.");
+}
+
+void MainWindow::matarProcessoSlot()
 {
     QString pidText = ui->lineEditAcaoPID->text();
 

@@ -10,6 +10,7 @@
 #include <QCloseEvent>
 #include "util.h"
 
+
 namespace Ui {
 class MainWindow;
 }
@@ -25,6 +26,7 @@ public:
 private:
     int processoMonitorado = -1;
     int tempoMonitorado = -1;
+
 
     Ui::MainWindow *ui;
     QList<Processo> processos;
@@ -53,7 +55,9 @@ private slots:
     void timeoutGrafico();
     void selecionarCelula(int l, int c);
     void filtrarProcessos();
-    void matarProcessos();
+    void matarProcessoSlot();
+    void pararProcessoSlot();
+    void continuarProcessoSlot();
     void alterarCPU();
     void exibirGrafico();
 };
