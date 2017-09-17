@@ -53,8 +53,12 @@ int main(int argc, char * argv[])
 		/* Exibe o tempo de reação total. */ 
 	
 		tempoReacao = (fim-inicio) / (CLOCKS_PER_SEC / 1000);
-		
+		cout << "Tempo de acender foi de : " << tempoAcender << " ms " << endl;
 		cout << "Tempo de reação: " << tempoReacao << " ms." << endl;
+		led.setValue(BlackLib::low);
+		cout << "Reiniciando a contagem em 5 segundos..." << endl;
+		usleep(5 * UNIT_SEC);
+		
     }
     return 0;
 }
