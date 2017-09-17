@@ -1,64 +1,65 @@
-#include <iostream>
-#include <pthread.h>
-#include <math.h>
-#include <unistd.h>
-#include <stdlib.h> 
-#include <time.h>  
-#include "BlackGPIO/BlackGPIO.h"
-#include "ADC/Adc.h"
-#include <chrono>
-#include <iomanip>
+/**
+ * Autor: Tiago Fernandes de Miranda
+ * Universidade Federal do Rio Grande do Norte
+ */
 
-#define UNIT_MS 1000
-#define UNIT_SEC 1000000
+ #include <iostream>
+ #include <pthread.h>
+ #include <math.h>
+ #include <unistd.h>
+ #include "BlackTime.h" 
+ #include "BlackGPIO/BlackGPIO.h"
+ #include "ADC/Adc.h"
+ #include <stdlib.h> 
 
+ // Inclua as classes que achar necessario
+
+#define UNIT_MS 1000;
+#define UNIT_SEC 1000000;
 using namespace std;
 
 int main(int argc, char * argv[])
-{   
+{
+    cout << "Programa na Beagle Board STR UFRN" << endl;
+    
+    /****************** Instanciação de Variaveis ***********************/ 
+    //GI/O
+        BlackLib::BlackGPIO entrada(BlackLib::GPIO_47,BlackLib::input, BlackLib::SecureMode);
+        BlackLib::BlackGPIO saida(BlackLib::GPIO_27,BlackLib::output, BlackLib::SecureMode);
+    
+    //Time Variaveis
+        int temporandomico;
+        Black::BlackTime tempoinicial();
+        Black::BlackTime tempofinal();
+        Black::BlackTime tempototal();
 
-    BlackLib::BlackGPIO led(BlackLib::GPIO_67, BlackLib::output, BlackLib::SecureMode);
-    BlackLib::BlackGPIO botao(BlackLib::GPIO_68, BlackLib::input, BlackLib::SecureMode);
-    float tempoAcender, tempoReacao; /* Ambos em milissegundos */
-    clock_t inicio, fim;
+    /****************** Fim da Instanciação de Variaveis ***********************/    
+    // Configurações Iniciais
+    
+    while(1){
+        saida.setValue(BlackLib::high);// Configuração Inicial
+        if(entrada.getIntValue()=="1"){
+            saida.setValue(BlackLib::low);// Desligando a Luz para o inicio do Jogo
+                // Tempo Random
+                temporandomico = rand() % 3 + 1;
+                long tempo = temporandomico*UNIT_SEC;
+                usleep(tempo);
+                
+                timeinicial.getCurrentTime(); // Pega tempo inicial
+                saida.setValue(BlackLib::high); // Acende a Luz
+                
+                // Espera o aperto do Botão
+                while(!entrada.getIntValue()=="1"){
+                    saida.setValue(BlackLib::low);
+                }
 
-    while(1)
-    {
-		/* Fornece o seed para o PRNG */
-		srand (time(NULL));
-		
-		/* Aplicação inicia com o LED acesso. */
-		led.setValue(BlackLib::high);
-		
-		/* Aguarda o usuário pressionar o botão pela primeira vez. */
-		while(stoi(botao.getValue()) == 1);	
-		
-		/* O led apaga. */
-		led.setValue(BlackLib::low);
-		
-		/* Gera um número aleatório entre 0 e 3000 milissegundos. */
-		tempoAcender = rand() % 3000;
-		
-		/* Espera o tempo acima. */
-		usleep(tempoAcender * UNIT_MS);
-		
-		/* O LED reacende */
-		led.setValue(BlackLib::high);
-		
-		/* Mede o tempo de reação do usuário. */
-		inicio = std::clock();
-		while(stoi(botao.getValue()) == 1);
-		fim = std::clock();
-		
-		/* Exibe o tempo de reação total. */ 
-	
-		tempoReacao = (fim-inicio) / (CLOCKS_PER_SEC / 1000);
-		cout << "Tempo de acender foi de : " << tempoAcender << " ms " << endl;
-		cout << "Tempo de reação: " << tempoReacao << " ms." << endl;
-		led.setValue(BlackLib::low);
-		cout << "Reiniciando a contagem em 5 segundos..." << endl;
-		usleep(5 * UNIT_SEC);
-		
+                timefinal.getCurrentTime();// Pega o tempo Final
+               
+                tempototal=tempofinal-tempoinicial;// Pega o tempo total de reação
+        }
+
     }
+
     return 0;
 }
+
