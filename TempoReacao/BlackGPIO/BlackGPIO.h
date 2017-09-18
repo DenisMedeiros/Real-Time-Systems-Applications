@@ -87,7 +87,7 @@ namespace BlackLib
                                 GPIO_9=9,       GPIO_8=8,
                                 GPIO_7=7,       GPIO_5=5,
                                 GPIO_4=4,       GPIO_3=3,
-                                GPIO_2=2
+                                GPIO_2=2,       GPIO_115=115
                             };
 
 

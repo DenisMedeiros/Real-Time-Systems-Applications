@@ -3,63 +3,83 @@
  * Universidade Federal do Rio Grande do Norte
  */
 
- #include <iostream>
- #include <pthread.h>
- #include <math.h>
- #include <unistd.h>
- #include "BlackTime.h" 
- #include "BlackGPIO/BlackGPIO.h"
- #include "ADC/Adc.h"
- #include <stdlib.h> 
+#include <iostream>
+#include <pthread.h>
+#include <math.h>
+#include <unistd.h>
+#include "BlackTime/BlackTime.h" 
+#include "BlackGPIO/BlackGPIO.h"
+#include "ADC/Adc.h"
+#include <stdlib.h> 
+#include <stdint.h>
+#include <time.h>
+#include "display.h"
 
  // Inclua as classes que achar necessario
 
-#define UNIT_MS 1000;
-#define UNIT_SEC 1000000;
+#define UNIT_MS 1000
+#define UNIT_SEC 1000000
+
 using namespace std;
 
 int main(int argc, char * argv[])
 {
-    cout << "Programa na Beagle Board STR UFRN" << endl;
-    
-    /****************** Instanciação de Variaveis ***********************/ 
-    //GI/O
-        BlackLib::BlackGPIO entrada(BlackLib::GPIO_47,BlackLib::input, BlackLib::SecureMode);
-        BlackLib::BlackGPIO saida(BlackLib::GPIO_27,BlackLib::output, BlackLib::SecureMode);
-    
-    //Time Variaveis
-        int temporandomico;
-        Black::BlackTime tempoinicial();
-        Black::BlackTime tempofinal();
-        Black::BlackTime tempototal();
+	/****************** Instanciação de Variaveis ***********************/ 
+	// GPIO
+    BlackLib::BlackGPIO saida(BlackLib::GPIO_67, BlackLib::output, BlackLib::SecureMode);
+    BlackLib::BlackGPIO entrada(BlackLib::GPIO_68, BlackLib::input, BlackLib::SecureMode);
 
-    /****************** Fim da Instanciação de Variaveis ***********************/    
-    // Configurações Iniciais
-    
-    while(1){
-        saida.setValue(BlackLib::high);// Configuração Inicial
-        if(entrada.getIntValue()=="1"){
-            saida.setValue(BlackLib::low);// Desligando a Luz para o inicio do Jogo
-                // Tempo Random
-                temporandomico = rand() % 3 + 1;
-                long tempo = temporandomico*UNIT_SEC;
-                usleep(tempo);
-                
-                timeinicial.getCurrentTime(); // Pega tempo inicial
-                saida.setValue(BlackLib::high); // Acende a Luz
-                
-                // Espera o aperto do Botão
-                while(!entrada.getIntValue()=="1"){
-                    saida.setValue(BlackLib::low);
-                }
+	// Variáveis relacioandas ao tempo
+	uint32_t tempoRandomico, milissegundos;
+	BlackLib::BlackTime medidor;
+	BlackLib::BlackTimeElapsed tempoDecorrido;
+	
+	// Display
+	Display display(BlackLib::GPIO_65, BlackLib::GPIO_45, 
+		BlackLib::GPIO_69, BlackLib::GPIO_60, BlackLib::GPIO_27, BlackLib::GPIO_66, 
+		BlackLib::GPIO_49, BlackLib::GPIO_115, 
+		BlackLib::GPIO_20, BlackLib::GPIO_47, 
+		BlackLib::GPIO_48, BlackLib::GPIO_46);
 
-                timefinal.getCurrentTime();// Pega o tempo Final
-               
-                tempototal=tempofinal-tempoinicial;// Pega o tempo total de reação
-        }
+	/****************** Fim da Instanciação de Variaveis ***********************/    
+	// Configurações Iniciais
 
-    }
+	while(1){
+			
+		// Fornecendo o seed
+		srand (time(NULL));
+		
+		// Configuração inicial
+		saida.setValue(BlackLib::high);
+		display.showNumber(0000);
+		
+		while(entrada.getValue() == "1");
+		
+		// Desligando a Luz para o inicio do Jogo
+		saida.setValue(BlackLib::low);
+		
+		// Gera um número aleatório entre 1 e 3 segundos e espera este tempo.
+		tempoRandomico = rand() % 3000 + 1000;
+		usleep(tempoRandomico * UNIT_MS);
 
-    return 0;
+		// Pega o tempo inicial e acende a luz
+		medidor.start(); 
+		saida.setValue(BlackLib::high);
+
+		// Espera o aperto do Botão
+		while(entrada.getValue() == "1");
+
+		// Pega o tempo final
+		tempoDecorrido = medidor.elapsed();
+		milissegundos = tempoDecorrido.second*1000 + tempoDecorrido.miliSecond;
+		
+		
+		display.showNumber(milissegundos);
+		cout << "Tempo de reação: " << milissegundos << endl;
+		cout << "Reiniciando a contagem em 5 segundos..." << endl;
+		usleep(5 * UNIT_SEC);
+	}
+
+	return 0;
 }
 

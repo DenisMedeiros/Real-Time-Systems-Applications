@@ -1,0 +1,5 @@
+http://nomartini-noparty.blogspot.com.br/2013/03/4-digit-7-segment-display.html
+
+https://github.com/sparkfun/SevSeg/
+
+http://www.instructables.com/id/12-Pin-7-Segment-Display-Wiring-Tutorial/
