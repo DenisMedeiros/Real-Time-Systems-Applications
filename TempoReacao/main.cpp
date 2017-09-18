@@ -42,7 +42,6 @@ int main(int argc, char * argv[])
 		BlackLib::GPIO_48, BlackLib::GPIO_46);
 
 	/****************** Fim da Instanciação de Variaveis ***********************/    
-	// Configurações Iniciais
 
 	while(1){
 			
