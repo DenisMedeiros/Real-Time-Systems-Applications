@@ -25,7 +25,7 @@ int ADC::getIntValue()
 float ADC::getPercentValue()
 {
 	int temp = getIntValue();
-	return (temp*100.0f)/4096.0;
+	return 100.0*temp/4095.0f; // Maior valor possível é 4095 = 100%
 	
 }
 
