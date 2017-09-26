@@ -1,8 +1,3 @@
-/**
- * Autor: Tiago Fernandes de Miranda
- * Universidade Federal do Rio Grande do Norte
- */
-
 #include <iostream>
 #include <pthread.h>
 #include <math.h>
@@ -74,8 +69,8 @@ int main(int argc, char * argv[])
 		
 		
 		display.showNumber(milissegundos);
-		cout << "Tempo de reação: " << milissegundos << endl;
-		cout << "Reiniciando a contagem em 5 segundos..." << endl;
+		//cout << "Tempo de reação: " << milissegundos << endl;
+		//cout << "Reiniciando a contagem em 5 segundos..." << endl;
 		usleep(5 * UNIT_SEC);
 	}
 
