@@ -21,12 +21,18 @@
 #define MULTICAST_ADDR "225.0.0.37"
 
 #define PORTA_ENVIO 9706 // Grupo 6
-#define PORTA_RECEBIMENTO 9801 // Grupo 1
+#define PORTA_RECEBIMENTO_BASE 9800
 
 
 using namespace std;
 
 /****************** Variaveis Globais ***********************/
+
+// Da esquerda para direita.
+BlackLib::BlackGPIO e4(BlackLib::GPIO_26, BlackLib::input, BlackLib::SecureMode);	
+BlackLib::BlackGPIO e3(BlackLib::GPIO_44, BlackLib::input, BlackLib::SecureMode);
+BlackLib::BlackGPIO e2(BlackLib::GPIO_68, BlackLib::input, BlackLib::SecureMode);
+BlackLib::BlackGPIO e1(BlackLib::GPIO_67, BlackLib::input, BlackLib::SecureMode);
 
 // Display
 Display display(BlackLib::GPIO_65, BlackLib::GPIO_45,
@@ -46,9 +52,8 @@ int main()
     int res;
     pthread_t thread_envio, thread_recebimento;
     void *thread_result;
-    
+        
     display.showNumber(0);
-    
     
     printf("Programa principal criando thread de envio...\n");
     res = pthread_create(&thread_envio, NULL, enviar, (void *) 1);
@@ -109,17 +114,18 @@ void *receber(void *valor)
 {
 
     bool buffer[8];
+    string numeroBin;
+    int numeroInt;
+
 
     int server_sockfd;
     size_t server_len;
     socklen_t client_len;
     struct sockaddr_in server_address;
     struct sockaddr_in client_address;
-    
+    unsigned short porta;
     struct ip_mreq mreq;  // para endereço multicast
     
-    unsigned short porta = PORTA_RECEBIMENTO;
-
     unlink("server_socket");  // remocao de socket antigo
     if ( (server_sockfd = socket(AF_INET, SOCK_DGRAM, 0) )  < 0  )  // cria um novo socket
     {
@@ -127,35 +133,42 @@ void *receber(void *valor)
         exit(1);
     }
     
-    server_address.sin_family = AF_INET;
-    server_address.sin_addr.s_addr = htonl(INADDR_ANY);
-    server_address.sin_port = htons(porta);
-
-    server_len = sizeof(server_address);
-    
-    if(bind(server_sockfd, (struct sockaddr *) &server_address, server_len) < 0 )
-    {
-        perror("[thread 1] Houve error no Bind");
-        exit(1);
-    }
-    
-    // use setsockopt() para requerer inscrição num grupo multicast
-    mreq.imr_multiaddr.s_addr=inet_addr(MULTICAST_ADDR);
-    mreq.imr_interface.s_addr=htonl(INADDR_ANY);
-    if (setsockopt(server_sockfd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq,sizeof(mreq)) < 0) 
-    {
-        perror("[thread 1] setsockopt");
-        exit(1);
-    }
-    
-    //printf(" IPPROTO_IP = %d\n", IPPROTO_IP);
-    //printf(" SOL_SOCKET = %d\n", SOL_SOCKET);
-    //printf(" IP_ADD_MEMBERSHIP = %d \n", IP_ADD_MEMBERSHIP);
-
     while (1)
     {
     
-        printf("[thread 1] Servidor esperando ...\n");
+        numeroBin = e1.getValue() + e2.getValue() + e3.getValue() +e4.getValue(); // Cria o número binário.
+        numeroInt = stoi(numeroBin, nullptr, 2); // Converte a string (em binário) para inteiro
+        
+        porta = PORTA_RECEBIMENTO_BASE + numeroInt;
+        
+        server_address.sin_family = AF_INET;
+        server_address.sin_addr.s_addr = htonl(INADDR_ANY);
+        server_address.sin_port = htons(porta);
+
+        server_len = sizeof(server_address);
+        
+        if(bind(server_sockfd, (struct sockaddr *) &server_address, server_len) < 0 )
+        {
+            perror("[thread 1] Houve error no Bind");
+            exit(1);
+        }
+        
+        // use setsockopt() para requerer inscrição num grupo multicast
+        mreq.imr_multiaddr.s_addr=inet_addr(MULTICAST_ADDR);
+        mreq.imr_interface.s_addr=htonl(INADDR_ANY);
+        if (setsockopt(server_sockfd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq,sizeof(mreq)) < 0) 
+        {
+            perror("[thread 1] setsockopt");
+            exit(1);
+        }
+    
+        //printf(" IPPROTO_IP = %d\n", IPPROTO_IP);
+        //printf(" SOL_SOCKET = %d\n", SOL_SOCKET);
+        //printf(" IP_ADD_MEMBERSHIP = %d \n", IP_ADD_MEMBERSHIP);
+        
+        
+        
+        printf("[thread 1] Servidor esperando na porta %d ...\n", porta);
         
         client_len = sizeof(client_address);
         if(recvfrom(server_sockfd, buffer, sizeof(buffer), 0,
@@ -164,6 +177,8 @@ void *receber(void *valor)
             perror(" erro no RECVFROM( )");
             exit(1);
         }
+        
+        
         
         // Neste ponto já se tem o vetor de booleanos preenchido.
         display.ligarSegmentos(buffer);
