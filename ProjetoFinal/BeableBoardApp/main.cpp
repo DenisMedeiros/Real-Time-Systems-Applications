@@ -102,7 +102,7 @@ void *enviar(void *valor)
         buffer[0] = pot0.getPercentValue() / 100.0;    
         buffer[1] = pot1.getPercentValue() / 100.0;    
 
-        printf("[thread 0] Potenciômetro 0 = %f, Potenciômetro 1 = %f\n", buffer[0], buffer[1]);
+        printf("[thread 0] Enviando %f e %f para porta %d...\n", buffer[0], buffer[1], porta);
 
         sendto(sockfd, buffer, sizeof(buffer), 0, (struct sockaddr *) &address, len);
         usleep(1000 * UNIT_MS);
@@ -126,51 +126,56 @@ void *receber(void *valor)
     unsigned short porta;
     struct ip_mreq mreq;  // para endereço multicast
     
-    unlink("server_socket");  // remocao de socket antigo
+    
     if ( (server_sockfd = socket(AF_INET, SOCK_DGRAM, 0) )  < 0  )  // cria um novo socket
     {
         printf("[thread 1] Houve erro na ebertura do socket ");
         exit(1);
     }
     
+    numeroBin = e1.getValue() + e2.getValue() + e3.getValue() + e4.getValue(); // Cria o número binário.
+    numeroInt = stoi(numeroBin, nullptr, 2); // Converte a string (em binário) para inteiro
+
+    porta = PORTA_RECEBIMENTO_BASE + numeroInt;
+
+    unlink("server_socket");  // remocao de socket antigo
+    memset(&server_address, 0, sizeof(server_address));
+
+
+    server_address.sin_family = AF_INET;
+    server_address.sin_addr.s_addr = htonl(INADDR_ANY);
+    server_address.sin_port = htons(porta);
+
+    server_len = sizeof(server_address);
+
+    if(bind(server_sockfd, (struct sockaddr *) &server_address, server_len) < 0 )
+    {
+        perror("[thread 1] Houve error no Bind");
+        exit(1);
+    }
+
+    // use setsockopt() para requerer inscrição num grupo multicast
+    mreq.imr_multiaddr.s_addr=inet_addr(MULTICAST_ADDR);
+    mreq.imr_interface.s_addr=htonl(INADDR_ANY);
+    if (setsockopt(server_sockfd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq,sizeof(mreq)) < 0) 
+    {
+        perror("[thread 1] setsockopt");
+        exit(1);
+    }
+
+    //printf(" IPPROTO_IP = %d\n", IPPROTO_IP);
+    //printf(" SOL_SOCKET = %d\n", SOL_SOCKET);
+    //printf(" IP_ADD_MEMBERSHIP = %d \n", IP_ADD_MEMBERSHIP);
+    
+    client_len = sizeof(client_address);
+    
     while (1)
     {
-    
-        numeroBin = e1.getValue() + e2.getValue() + e3.getValue() +e4.getValue(); // Cria o número binário.
-        numeroInt = stoi(numeroBin, nullptr, 2); // Converte a string (em binário) para inteiro
-        
-        porta = PORTA_RECEBIMENTO_BASE + numeroInt;
-        
-        server_address.sin_family = AF_INET;
-        server_address.sin_addr.s_addr = htonl(INADDR_ANY);
-        server_address.sin_port = htons(porta);
-
-        server_len = sizeof(server_address);
-        
-        if(bind(server_sockfd, (struct sockaddr *) &server_address, server_len) < 0 )
-        {
-            perror("[thread 1] Houve error no Bind");
-            exit(1);
-        }
-        
-        // use setsockopt() para requerer inscrição num grupo multicast
-        mreq.imr_multiaddr.s_addr=inet_addr(MULTICAST_ADDR);
-        mreq.imr_interface.s_addr=htonl(INADDR_ANY);
-        if (setsockopt(server_sockfd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq,sizeof(mreq)) < 0) 
-        {
-            perror("[thread 1] setsockopt");
-            exit(1);
-        }
-    
-        //printf(" IPPROTO_IP = %d\n", IPPROTO_IP);
-        //printf(" SOL_SOCKET = %d\n", SOL_SOCKET);
-        //printf(" IP_ADD_MEMBERSHIP = %d \n", IP_ADD_MEMBERSHIP);
-        
         
         
         printf("[thread 1] Servidor esperando na porta %d ...\n", porta);
         
-        client_len = sizeof(client_address);
+        
         if(recvfrom(server_sockfd, buffer, sizeof(buffer), 0,
                     (struct sockaddr *) &client_address, &client_len) < 0 )
         {
@@ -178,7 +183,7 @@ void *receber(void *valor)
             exit(1);
         }
         
-        
+        printf("Valor recebido na porta %d foi: %d:%d:%d:%d:%d:%d:%d:%d\n", porta, buffer[0],buffer[1],buffer[2],buffer[3],buffer[4],buffer[5],buffer[6],buffer[7]);
         
         // Neste ponto já se tem o vetor de booleanos preenchido.
         display.ligarSegmentos(buffer);

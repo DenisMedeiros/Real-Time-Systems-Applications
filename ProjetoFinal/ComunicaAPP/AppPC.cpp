@@ -33,8 +33,8 @@ struct sockaddr_in client_address;
 
 struct ip_mreq mreq;  // para endere�o multicast
 int valor;
-unsigned short porta = 9709;
-
+unsigned short portaEnvio = 9806;
+unsigned short portaRecebimento = 9706;
 
 int main( )
 {
@@ -86,7 +86,7 @@ void *thread_receber(void *valor)
     }
     server_address.sin_family = AF_INET;
     server_address.sin_addr.s_addr = htonl(INADDR_ANY);
-    server_address.sin_port = htons(porta);
+    server_address.sin_port = htons(portaRecebimento);
     
     server_len = sizeof(server_address);
     
@@ -109,7 +109,7 @@ void *thread_receber(void *valor)
     float buffer_recebe[2];
     while(1)
     {
-        printf("Servidor esperando ...\n"k);
+        printf("Servidor esperando ...\n");
         
         client_len = sizeof(server_address);
         if(recvfrom(server_sockfd, &buffer_recebe, sizeof(buffer_recebe),0,(struct sockaddr *) &server_address, &client_len) < 0 )
@@ -117,7 +117,7 @@ void *thread_receber(void *valor)
             perror(" erro no RECVFROM( )");
             exit(1);
         }
-        printf(" Valor recebido foi: buffer_recebe[0]: %f buffer_recebe[1] %f\n", buffer_recebe[0],buffer_recebe[1]);
+        printf(" Valor recebido na porta %d foi: buffer_recebe[0]: %f buffer_recebe[1] %f\n", portaRecebimento, buffer_recebe[0],buffer_recebe[1]);
     }
 }
 
@@ -126,7 +126,7 @@ void *thread_enviar(void *valor)
     client_sockfd  = socket(AF_INET, SOCK_DGRAM,0);  // criacao do socket
     client_address.sin_family = AF_INET;
     client_address.sin_addr.s_addr = inet_addr(MULTICAST_ADDR);
-    client_address.sin_port = htons(porta);
+    client_address.sin_port = htons(portaEnvio);
     client_len = sizeof(client_address);
     bool buffer_envia[8];
     while(1)
@@ -139,7 +139,7 @@ void *thread_enviar(void *valor)
         buffer_envia[5] = rand() % 2;
         buffer_envia[6] = rand() % 2;
         buffer_envia[7] = rand() % 2;
-        printf(" Valor enviado foi: %d:%d:%d:%d:%d:%d:%d:%d\n", buffer_envia[0],buffer_envia[1],buffer_envia[2],buffer_envia[3],buffer_envia[4],buffer_envia[5],buffer_envia[6],buffer_envia[7]);
+        printf(" Valor enviado na porta %d foi: %d:%d:%d:%d:%d:%d:%d:%d\n", portaEnvio, buffer_envia[0],buffer_envia[1],buffer_envia[2],buffer_envia[3],buffer_envia[4],buffer_envia[5],buffer_envia[6],buffer_envia[7]);
         sendto(client_sockfd, &buffer_envia,sizeof(buffer_envia),0,(struct sockaddr *) &client_address, client_len);
         sleep(1);
     }
