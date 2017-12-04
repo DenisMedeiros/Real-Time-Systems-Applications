@@ -8,6 +8,7 @@
 #include <sys/resource.h>
 #include "BlackGPIO/BlackGPIO.h"
 #include "adc.h"
+#include "display.h"
 
 #define UNIT_MS 1000
 #define UNIT_SEC 1000000
