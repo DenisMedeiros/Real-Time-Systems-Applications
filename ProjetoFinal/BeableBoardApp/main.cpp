@@ -5,7 +5,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <pthread.h> // biblioteca pthread
-#include <semaphore.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
 
 #include "adc.h"
 #include "BlackTime/BlackTime.h"
@@ -16,18 +18,15 @@
 #define UNIT_MS 1000
 #define UNIT_SEC 1000000
 
-#define BUFFER_SIZE 7
+#define MULTICAST_ADDR "225.0.0.37"
+
+#define PORTA_ENVIO 9706 // Grupo 6
+#define PORTA_RECEBIMENTO 9801 // Grupo 1
+
 
 using namespace std;
 
 /****************** Variaveis Globais ***********************/
-
-int buffer[BUFFER_SIZE]; /* Buffer */
-int buffer_index;
-int num_items = 0;
-pthread_mutex_t buffer_mutex; /* Mutex do buffer */
-sem_t buffer_cheio;  /* Quando for 0, o buffer está cheio. */
-sem_t buffer_vazio; /* Quando for 0, o buffer está vazio (funciona como um índice). */
 
 // Display
 Display display(BlackLib::GPIO_65, BlackLib::GPIO_45,
@@ -35,164 +34,141 @@ Display display(BlackLib::GPIO_65, BlackLib::GPIO_45,
 					BlackLib::GPIO_49, BlackLib::GPIO_115,
 					BlackLib::GPIO_20, BlackLib::GPIO_47,
 					BlackLib::GPIO_48, BlackLib::GPIO_46);
-					
+                    
 
-void *thread_consumidor(void *arg);
-void *thread_produtor(void *arg);
-void resetar_buffer(void);
+void *enviar(void *arg);
+void *receber(void *arg);
 
 /****************** FIM de Globais ***********************/
 
 int main()
-{	
+{    
     int res;
-    pthread_t consumdior, produtor;
-    // Botão de reset.
-    BlackLib::BlackGPIO entrada(BlackLib::GPIO_68, BlackLib::input, BlackLib::SecureMode);	
+    pthread_t thread_envio, thread_recebimento;
+    void *thread_result;
     
-
-    resetar_buffer();
     display.showNumber(0);
-	
-    while(1)
+    
+    
+    printf("Programa principal criando thread de envio...\n");
+    res = pthread_create(&thread_envio, NULL, enviar, (void *) 1);
+    if (res != 0)
     {
-	printf("Programa principal criando thread consumidor...\n");
-	res = pthread_create(&consumdior, NULL, thread_consumidor, (void *) 1);
-	if (res != 0)
-	{
-	    perror("A Craição da Thread consumidor falhou");
-	    exit(EXIT_FAILURE);
-	}
-
-
-	printf("Programa principal criando thread produtor...\n");
-	res = pthread_create(&produtor, NULL, thread_produtor, (void *) 2);
-	if (res != 0)
-	{
-	    perror("A Craição da Thread produtor falhou");
-	    exit(EXIT_FAILURE);
-	}
-	
-	// Aguarda o reset.
-	while(entrada.getValue() == "1");
-
-	// Cancela as threads.
-	pthread_cancel(consumdior);
-	pthread_cancel(produtor);
-	
-	resetar_buffer();
-	display.showNumber(0);
-	sleep(1);
+        perror("A Craição da thread de envio falhou");
+        exit(EXIT_FAILURE);
     }
+
+
+    printf("Programa principal criando thread produtor...\n");
+    res = pthread_create(&thread_recebimento, NULL, receber, (void *) 2);
+    if (res != 0)
+    {
+        perror("A Craição da thread de recebimento falhou");
+        exit(EXIT_FAILURE);
+    }
+    
+    res = pthread_join(thread_envio, &thread_result);
+    res = pthread_join(thread_recebimento, &thread_result);
+
 }
 
-void *thread_produtor(void *valor)
+void *enviar(void *valor)
 {
-    int prevType;
-    float perc1;
-    ADC pot1(AIN0); // pot1 = consumidor
+    ADC pot0(AIN0), pot1(AIN1);
+    float buffer[2];
     
-    // A thread pode ser cancelada de forma assíncrona.
-    pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, &prevType);
+    // Necessários para o multicast
+    int sockfd, len;
+    struct sockaddr_in address;
+    
+    unsigned short porta = PORTA_ENVIO;
+    
+    sockfd  = socket(AF_INET, SOCK_DGRAM,0);  // criacao do socket
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = inet_addr(MULTICAST_ADDR);
+    //address.sin_addr.s_addr = inet_addr("10.13.96.16"); // euler
+    address.sin_port = htons(porta);
+    
+    len = sizeof(address);
     
     while (1)
     {
-	//sem_getvalue(&buffer_cheio, &val);
-	//printf("Semáforo do produtor: %d\n", val);
-	    
-	perc1 = pot1.getPercentValue();	
-	usleep(perc1 * 100 * UNIT_MS); // Espera muito ou pouco
-	    
-	// Se o buffer está cheio, espere (decrementa 1 do buffer cheio). 
-	sem_wait(&buffer_cheio);
-	
-	// Trava o buffer.
-	pthread_mutex_lock(&buffer_mutex);
-		
-	// Insere o item no buffer.
-	buffer[buffer_index] = 1;
-	num_items++;
-	
-	if(buffer_index < BUFFER_SIZE-1)
-	{
-	    buffer_index += 1;
-	}
-	
-	//printf("Produzindo item %d ...\n", buffer_index);
-	//fflush(stdout);
-	display.showNumber(num_items);
-	
-	// Libera o buffer.
-	pthread_mutex_unlock(&buffer_mutex);
-	
-	// Incrementa o semáforo (diz que está menos vazio).
-	sem_post(&buffer_vazio);
-		    
-	usleep(100 * UNIT_MS);
-    }
+        
+        buffer[0] = pot0.getPercentValue() / 100.0;    
+        buffer[1] = pot1.getPercentValue() / 100.0;    
 
+        printf("[thread 0] Potenciômetro 0 = %f, Potenciômetro 1 = %f\n", buffer[0], buffer[1]);
+
+        sendto(sockfd, buffer, sizeof(buffer), 0, (struct sockaddr *) &address, len);
+        usleep(1000 * UNIT_MS);
+    }
 }
 
-void *thread_consumidor(void *valor)
+
+void *receber(void *valor)
 {
-    int prevType;
-    float perc2;
-    ADC pot2(AIN1); // pot2 = produtor
+
+    bool buffer[8];
+
+    int server_sockfd;
+    size_t server_len;
+    socklen_t client_len;
+    struct sockaddr_in server_address;
+    struct sockaddr_in client_address;
     
-    // A thread pode ser cancelada de forma assíncrona.
-    pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, &prevType);
+    struct ip_mreq mreq;  // para endereço multicast
     
-    //int val;
+    unsigned short porta = PORTA_RECEBIMENTO;
+
+    unlink("server_socket");  // remocao de socket antigo
+    if ( (server_sockfd = socket(AF_INET, SOCK_DGRAM, 0) )  < 0  )  // cria um novo socket
+    {
+        printf("[thread 1] Houve erro na ebertura do socket ");
+        exit(1);
+    }
+    
+    server_address.sin_family = AF_INET;
+    server_address.sin_addr.s_addr = htonl(INADDR_ANY);
+    server_address.sin_port = htons(porta);
+
+    server_len = sizeof(server_address);
+    
+    if(bind(server_sockfd, (struct sockaddr *) &server_address, server_len) < 0 )
+    {
+        perror("[thread 1] Houve error no Bind");
+        exit(1);
+    }
+    
+    // use setsockopt() para requerer inscrição num grupo multicast
+    mreq.imr_multiaddr.s_addr=inet_addr(MULTICAST_ADDR);
+    mreq.imr_interface.s_addr=htonl(INADDR_ANY);
+    if (setsockopt(server_sockfd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq,sizeof(mreq)) < 0) 
+    {
+        perror("[thread 1] setsockopt");
+        exit(1);
+    }
+    
+    //printf(" IPPROTO_IP = %d\n", IPPROTO_IP);
+    //printf(" SOL_SOCKET = %d\n", SOL_SOCKET);
+    //printf(" IP_ADD_MEMBERSHIP = %d \n", IP_ADD_MEMBERSHIP);
+
     while (1)
     {
-	//sem_getvalue(&buffer_vazio, &val);
-	//printf("Semáforo do consumidor: %d\n", val);
-	    
-	perc2 = pot2.getPercentValue();
-	usleep(perc2  * 100 *  UNIT_MS); // Espera muito ou pouco
-
-	// Se o buffer está vazio, espere (decrementa 1 do buffer vazio).
-	sem_wait(&buffer_vazio);
     
-	// Trava o buffer.
-	pthread_mutex_lock(&buffer_mutex);
-	
-	// Insere o item no buffer.
-	buffer[buffer_index] = 0;
-	num_items--;
-	if (buffer_index > 0)
-	{
-	    buffer_index -= 1;
-	}
-	
-	//printf("Consumindo item %d ...\n", buffer_index);
-	display.showNumber(num_items);
-	
-	// Libera o buffer.
-	pthread_mutex_unlock(&buffer_mutex);
-	
-	// Incrementa o semáforo (diz que está menos cheio).
-	sem_post(&buffer_cheio);
-			
-	usleep(100 * UNIT_MS);
-	    
+        printf("[thread 1] Servidor esperando ...\n");
+        
+        client_len = sizeof(client_address);
+        if(recvfrom(server_sockfd, buffer, sizeof(buffer), 0,
+                    (struct sockaddr *) &client_address, &client_len) < 0 )
+        {
+            perror(" erro no RECVFROM( )");
+            exit(1);
+        }
+        
+        // Neste ponto já se tem o vetor de booleanos preenchido.
+        display.ligarSegmentos(buffer);
+
+        usleep(1000 * UNIT_MS);
     }
+
 }
-
-void resetar_buffer(void)
-{
-    int i;
-    buffer_index = 0;
-    num_items = 0;
-    
-    sem_init(&buffer_cheio, 0, BUFFER_SIZE);
-    sem_init(&buffer_vazio, 0, 0);
-    pthread_mutex_init(&buffer_mutex, NULL);
-    
-    for(i = 0; i < BUFFER_SIZE; i++)
-    {
-	buffer[i] = 0;
-    }
-}
-
-

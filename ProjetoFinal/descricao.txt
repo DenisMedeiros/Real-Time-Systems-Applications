@@ -1,0 +1,21 @@
+Trabalho Final - Comunicação Multicast
+
+Desenvolver as seguintes aplicações:
+
+- Na Beagle Board
+
+  - Thread que lê a cada segundo valores de 02 ADCs (ADC1 e ADC2), conectados respectivamente a 02 potenciômetros. Os valores devem estar entre 0 e 1. Enviar esses valores num array de 02 posições pelo endereço multicast 225.0.0.37 porta 97-- (para o grupo 01, porta 9701; para o grupo 02, porta 9702 e assim por diante).
+
+  - Thread que recebe no endereço 225.0.0.37 e porta 98--, um array de booleano de 08 posições. A porta deve ser configurada a cada segundo por valores lidos de 04 chaves digitais conectadas a portas GPIO. Se a configuração das chaves for 0101 (por exemplo), o valor da porta será 9805 e assim por diante. Os valores contidos no vetor booleano devem ser escritos em portas GPIO associadas a um dysplay de 07 segmentos.
+
+- Escrever um programa num computador (denominado de aplicação genérica) lê os arrays ofiundos das portas 97-- e escreve um array booleano de 08 posições nas portas 98--.
+
+      - O grupo está livre para escrever qualquer programa que utilize essas funcionalidades.
+
+ 
+
+As Beagles Boards deverão estar conectadas via Wifi. Quando conectadas no Wifi, as placas precisam estar alimentadas na tomada (via USB não funciona).
+
+ 
+
+Vide esquemático em anexo.

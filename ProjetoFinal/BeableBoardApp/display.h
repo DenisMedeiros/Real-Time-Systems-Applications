@@ -19,6 +19,8 @@ class Display
         ~Display();
             
         void showNumber(uint16_t _number);
+        
+        void ligarSegmentos(bool segmentos[8]);
 
     private:     
     

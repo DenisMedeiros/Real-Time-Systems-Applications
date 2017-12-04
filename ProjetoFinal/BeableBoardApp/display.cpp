@@ -183,6 +183,28 @@ void Display::turnOnSegments(uint8_t number)
     
 }
 
+void Display::ligarSegmentos(bool segmentos[8])
+{
+    segA->setValue(BlackLib::high);
+    segB->setValue(BlackLib::high);
+    segC->setValue(BlackLib::high);
+    segD->setValue(BlackLib::high);
+    segE->setValue(BlackLib::high);
+    segF->setValue(BlackLib::high);
+    segG->setValue(BlackLib::high);
+    segDP->setValue(BlackLib::high);
+
+    if(segmentos[0]) segA->setValue(BlackLib::low);
+    if(segmentos[1]) segB->setValue(BlackLib::low);
+    if(segmentos[2]) segC->setValue(BlackLib::low);
+    if(segmentos[3]) segD->setValue(BlackLib::low);
+    if(segmentos[4]) segE->setValue(BlackLib::low);
+    if(segmentos[5]) segF->setValue(BlackLib::low);
+    if(segmentos[6]) segG->setValue(BlackLib::low);
+    if(segmentos[7]) segDP->setValue(BlackLib::low);
+    
+}
+
 void Display::showNumber(uint16_t _number)
 {
     usleep(1000);
