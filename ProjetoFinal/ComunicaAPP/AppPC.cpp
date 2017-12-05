@@ -109,15 +109,21 @@ void *thread_receber(void *valor)
     float buffer_recebe[2];
     while(1)
     {
-        printf("Servidor esperando ...\n");
+        printf("Servidor esperando na porta %d ...\n", portaRecebimento);
         
         client_len = sizeof(server_address);
-        if(recvfrom(server_sockfd, &buffer_recebe, sizeof(buffer_recebe),0,(struct sockaddr *) &server_address, &client_len) < 0 )
+        if(recvfrom(server_sockfd, buffer_recebe, sizeof(buffer_recebe),0,(struct sockaddr *) &server_address, &client_len) < 0 )
         {
             perror(" erro no RECVFROM( )");
             exit(1);
         }
-        printf(" Valor recebido na porta %d foi: buffer_recebe[0]: %f buffer_recebe[1] %f\n", portaRecebimento, buffer_recebe[0],buffer_recebe[1]);
+        
+        struct in_addr ipAddr = client_address.sin_addr;
+        char str[INET_ADDRSTRLEN];
+        inet_ntop( AF_INET, &ipAddr, str, INET_ADDRSTRLEN);
+        
+        
+        printf(" Valor recebido na porta %d do IP %s foi: buffer_recebe[0]: %f buffer_recebe[1] %f\n", portaRecebimento, str, buffer_recebe[0],buffer_recebe[1]);
     }
 }
 

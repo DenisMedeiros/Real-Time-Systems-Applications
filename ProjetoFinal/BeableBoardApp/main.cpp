@@ -136,6 +136,7 @@ void *receber(void *valor)
     numeroBin = e1.getValue() + e2.getValue() + e3.getValue() + e4.getValue(); // Cria o número binário.
     numeroInt = stoi(numeroBin, nullptr, 2); // Converte a string (em binário) para inteiro
 
+
     porta = PORTA_RECEBIMENTO_BASE + numeroInt;
 
     unlink("server_socket");  // remocao de socket antigo
@@ -182,8 +183,13 @@ void *receber(void *valor)
             perror(" erro no RECVFROM( )");
             exit(1);
         }
-        
-        printf("Valor recebido na porta %d foi: %d:%d:%d:%d:%d:%d:%d:%d\n", porta, buffer[0],buffer[1],buffer[2],buffer[3],buffer[4],buffer[5],buffer[6],buffer[7]);
+
+        struct in_addr ipAddr = client_address.sin_addr;
+        char str[INET_ADDRSTRLEN];
+        inet_ntop( AF_INET, &ipAddr, str, INET_ADDRSTRLEN);
+
+
+        printf("Valor recebido na porta %d do IP %s foi: %d:%d:%d:%d:%d:%d:%d:%d\n", porta, str, buffer[0],buffer[1],buffer[2],buffer[3],buffer[4],buffer[5],buffer[6],buffer[7]);
         
         // Neste ponto já se tem o vetor de booleanos preenchido.
         display.ligarSegmentos(buffer);
