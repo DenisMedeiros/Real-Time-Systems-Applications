@@ -21,6 +21,22 @@
 #include <pthread.h>
 
 
+
+pthread_mutex_t lock;
+float buffer_recebe[2];
+
+const bool PAI[][8] = {
+    {1, 1, 0, 0, 1, 1, 1, 0},
+    {1, 1, 1, 0, 1, 1, 1, 0},
+    {0, 1, 1, 0, 0, 0, 0, 0}
+};
+
+const bool BAU[][8] = {
+    {0, 0, 1, 1, 1, 1, 1, 0},
+    {1, 1, 1, 0, 1, 1, 1, 0},
+    {0, 1, 1, 1, 1, 1, 0, 0}
+};
+
 #define MULTICAST_ADDR "225.0.0.37"
 void *thread_enviar(void *valor);
 void *thread_receber(void *valor);
@@ -106,7 +122,7 @@ void *thread_receber(void *valor)
     //printf(" SOL_SOCKET = %d\n", SOL_SOCKET);
     //printf(" IP_ADD_MEMBERSHIP = %d \n", IP_ADD_MEMBERSHIP);
 
-    float buffer_recebe[2];
+    
     while(1)
     {
         printf("Servidor esperando na porta %d ...\n", portaRecebimento);
@@ -117,13 +133,13 @@ void *thread_receber(void *valor)
             perror(" erro no RECVFROM( )");
             exit(1);
         }
-        
+
         struct in_addr ipAddr = client_address.sin_addr;
         char str[INET_ADDRSTRLEN];
         inet_ntop( AF_INET, &ipAddr, str, INET_ADDRSTRLEN);
         
         
-        printf(" Valor recebido na porta %d do IP %s foi: buffer_recebe[0]: %f buffer_recebe[1] %f\n", portaRecebimento, str, buffer_recebe[0],buffer_recebe[1]);
+        printf(" Valor recebido na porta %d do IP %s foi: buffer_recebe[0]: %f buffer_recebe[1] %f\n", portaRecebimento, str, buffer_recebe[0], buffer_recebe[1]);
     }
 }
 
@@ -134,19 +150,36 @@ void *thread_enviar(void *valor)
     client_address.sin_addr.s_addr = inet_addr(MULTICAST_ADDR);
     client_address.sin_port = htons(portaEnvio);
     client_len = sizeof(client_address);
+    
     bool buffer_envia[8];
+    
     while(1)
     {
-        buffer_envia[0] = rand() % 2;
-        buffer_envia[1] = rand() % 2;
-        buffer_envia[2] = rand() % 2;
-        buffer_envia[3] = rand() % 2;
-        buffer_envia[4] = rand() % 2;
-        buffer_envia[5] = rand() % 2;
-        buffer_envia[6] = rand() % 2;
-        buffer_envia[7] = rand() % 2;
-        printf(" Valor enviado na porta %d foi: %d:%d:%d:%d:%d:%d:%d:%d\n", portaEnvio, buffer_envia[0],buffer_envia[1],buffer_envia[2],buffer_envia[3],buffer_envia[4],buffer_envia[5],buffer_envia[6],buffer_envia[7]);
-        sendto(client_sockfd, &buffer_envia,sizeof(buffer_envia),0,(struct sockaddr *) &client_address, client_len);
+
+        if(buffer_recebe[0] >= buffer_recebe[1])
+        {
+            printf("Enviando PAI...\n");
+            for(int i = 0; i < 3; i++)
+            {
+            
+                //printf(" Valor enviado na porta %d foi: %d:%d:%d:%d:%d:%d:%d:%d\n", portaEnvio, buffer_envia[0],buffer_envia[1],buffer_envia[2],buffer_envia[3],buffer_envia[4],buffer_envia[5],buffer_envia[6],buffer_envia[7]);
+                sendto(client_sockfd, PAI[i], sizeof(PAI[i]), 0, (struct sockaddr *) &client_address, client_len);
+                usleep(500000);
+            }
+            sleep(1);
+        }
+        else
+        {
+            printf("Enviando BAU...\n");
+            for(int i = 0; i < 3; i++)
+            {
+                //printf(" Valor enviado na porta %d foi: %d:%d:%d:%d:%d:%d:%d:%d\n", portaEnvio, buffer_envia[0],buffer_envia[1],buffer_envia[2],buffer_envia[3],buffer_envia[4],buffer_envia[5],buffer_envia[6],buffer_envia[7]);
+                sendto(client_sockfd, BAU[i], sizeof(BAU[i]),0,(struct sockaddr *) &client_address, client_len);
+                usleep(500000);
+            }
+            sleep(1);
+        }
+
         sleep(1);
     }
 }
